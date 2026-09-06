@@ -2,7 +2,7 @@
 
 ## Purpose
 
-One-job macOS helper: export open Brave Browser tabs to a Desktop markdown snapshot, and append Kit-style lines to the owner standing log on `system/pkm/brave-tabs.md`.
+One-job macOS helper: export open Brave Browser tabs into the owner standing log on `system/pkm/brave-tabs.md`, then project that file for Console. Desktop markdown is optional (`--desktop`), not a third home.
 
 ## Layout
 
@@ -13,7 +13,7 @@ One-job macOS helper: export open Brave Browser tabs to a Desktop markdown snaps
 ## Constraints
 
 - Stay a single shell script (+ tiny inline python for standing append). No Node, no Swift app, no Homebrew formula unless the owner asks.
-- Desktop output format stays stable: markdown headings per window, then `- [title](url)` lines.
+- Default path writes **no** Desktop file. Optional `--desktop` keeps the old markdown window/`- [title](url)` shape for a one-off snapshot.
 - Standing format stays stable: `YYYY-MM-DDTHH:MM W{n} | title | url` (Europe/Warsaw).
 - Do not invent browser support for Chrome/Safari unless asked; clone the script if needed.
 - Never commit Desktop dump files or paste personal tab lists into this public repo.

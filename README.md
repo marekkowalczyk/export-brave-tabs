@@ -1,6 +1,6 @@
 # export-brave-tabs
 
-Dump every open [Brave Browser](https://brave.com) tab (all windows) into markdown, and append a Kit-style standing log on `system/` when that home exists.
+Dump every open [Brave Browser](https://brave.com) tab (all windows) into the standing Kit-style log on `system/`, and project that file for Console.app.
 
 ## Requirements
 
@@ -22,17 +22,18 @@ Ensure `~/bin` is on your `PATH`.
 
 ```bash
 export-brave-tabs.sh
-# optional Desktop path:
-export-brave-tabs.sh ~/Desktop/my-tabs.md
-# Desktop only (no standing append):
-export-brave-tabs.sh --no-standing
+# optional one-off Desktop/snapshot (not the home):
+export-brave-tabs.sh --desktop
+export-brave-tabs.sh --desktop ~/Desktop/my-tabs.md
+# snapshot only (no standing append):
+export-brave-tabs.sh --desktop --no-standing
 ```
 
-Default Desktop output: `~/Desktop/brave-tabs-YYYY-MM-DD-HHMM.md`. Finder reveals the file when done.
+Default: append standing log only. No Desktop file. Finder reveal only when `--desktop` is set.
 
 ### Standing log (owner)
 
-When `~/repos/system/pkm/brave-tabs.md` exists (or is creatable), each run **appends** lines:
+Home: `~/repos/system/pkm/brave-tabs.md`. Each run **appends** lines:
 
 ```text
 YYYY-MM-DDTHH:MM W{n} | title | url
@@ -46,6 +47,7 @@ Commit/push of `system/` is not done by this script — Larry or the commit-push
 
 - Browser tabs only. Other app windows have no URL.
 - Titles come from Brave; empty or odd titles are possible on `chrome://` / `brave://` pages.
+- Do not keep dated Desktop dumps as a third copy. Standing markdown is SSOT; `~/Library/Logs/brave-tabs.log` is regenerable for Console.
 
 ## Console projection (Lock A, 2026-09-06)
 

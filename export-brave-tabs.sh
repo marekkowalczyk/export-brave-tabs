@@ -1,12 +1,10 @@
 #!/bin/zsh
 set -euo pipefail
 
-# Desktop snapshot (disposable)
-OUT="${1:-$HOME/Desktop/brave-tabs-$(date +%Y-%m-%d-%H%M).md}"
-
-# Standing Kit-style log. Default: system/ pkm/brave-tabs.md.
-# Override: BRAVE_TABS_STANDING=/path/to/file
-# Skip: --no-standing   or   BRAVE_TABS_STANDING=
+# Standing Kit-style log is the home (system/ pkm/brave-tabs.md).
+# Desktop markdown is optional (--desktop) — not a third SSOT.
+# Override standing: BRAVE_TABS_STANDING=/path/to/file
+# Skip standing: --no-standing   or   BRAVE_TABS_STANDING=
 STANDING_DEFAULT="$HOME/repos/system/pkm/brave-tabs.md"
 if [[ -v BRAVE_TABS_STANDING ]]; then
   STANDING="$BRAVE_TABS_STANDING"
@@ -14,16 +12,30 @@ else
   STANDING="$STANDING_DEFAULT"
 fi
 NO_STANDING=0
+WANT_DESKTOP=0
+DESKTOP_OUT=""
 POSITIONAL=()
 for a in "$@"; do
   if [[ "$a" == "--no-standing" ]]; then
     NO_STANDING=1
+  elif [[ "$a" == "--desktop" ]]; then
+    WANT_DESKTOP=1
+  elif [[ "$a" == --desktop=* ]]; then
+    WANT_DESKTOP=1
+    DESKTOP_OUT="${a#--desktop=}"
   else
     POSITIONAL+=("$a")
   fi
 done
-if (( ${#POSITIONAL[@]} > 0 )); then
-  OUT="${POSITIONAL[1]}"
+# Positional path after --desktop means custom Desktop/snapshot path
+if (( WANT_DESKTOP )) && (( ${#POSITIONAL[@]} > 0 )); then
+  DESKTOP_OUT="${POSITIONAL[1]}"
+elif (( WANT_DESKTOP )) && [[ -z "$DESKTOP_OUT" ]]; then
+  DESKTOP_OUT="$HOME/Desktop/brave-tabs-$(date +%Y-%m-%d-%H%M).md"
+elif (( ${#POSITIONAL[@]} > 0 )); then
+  echo "Unknown argument: ${POSITIONAL[1]}" >&2
+  echo "Usage: export-brave-tabs.sh [--no-standing] [--desktop [path]]" >&2
+  exit 2
 fi
 
 RAW="$(/usr/bin/osascript <<'APPLESCRIPT'
@@ -45,11 +57,17 @@ end tell
 APPLESCRIPT
 )"
 
-print -r -- "$RAW" > "$OUT"
-echo "Wrote $OUT"
-open -R "$OUT"
+if (( WANT_DESKTOP )); then
+  print -r -- "$RAW" > "$DESKTOP_OUT"
+  echo "Wrote optional snapshot $DESKTOP_OUT"
+  open -R "$DESKTOP_OUT"
+fi
 
 if (( NO_STANDING )) || [[ -z "$STANDING" ]]; then
+  if (( ! WANT_DESKTOP )); then
+    echo "Nothing to do: standing skipped and --desktop not set." >&2
+    exit 2
+  fi
   echo "Standing append skipped."
   exit 0
 fi
@@ -71,7 +89,7 @@ process: false
 
 # Brave tabs
 
-Standing capture log. One run appends dated lines (Kit-style stamp first). Desktop dated dump remains a disposable snapshot. Do not invent tabs.
+Standing capture log. One run appends dated lines (Kit-style stamp first). Optional Desktop snapshot only with --desktop. Do not invent tabs.
 
 HDR
 fi
@@ -110,7 +128,6 @@ with standing.open("a", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
 print(f"Appended {len(lines)} lines to {standing}")
 ' "$STANDING" "$STAMP"
-
 
 # Console Log Reports need a real .log under ~/Library/Logs (symlinks invisible).
 # Lock A: regenerate projection from standing SSOT; do not move the home.
