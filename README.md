@@ -22,11 +22,14 @@ Ensure `~/bin` is on your `PATH`.
 
 ```bash
 export-brave-tabs.sh
-# optional one-off Desktop/snapshot (not the home):
+export-brave-tabs.sh --help
+export-brave-tabs.sh --version
+# optional one-off snapshot (not the home):
 export-brave-tabs.sh --desktop
 export-brave-tabs.sh --desktop ~/Desktop/my-tabs.md
 # snapshot only (no standing append):
 export-brave-tabs.sh --desktop --no-standing
+export-brave-tabs.sh -q   # quieter stdout
 ```
 
 Default: append standing log only. No Desktop file. Finder reveal only when `--desktop` is set.

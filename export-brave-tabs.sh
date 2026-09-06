@@ -1,41 +1,112 @@
 #!/bin/zsh
+# export-brave-tabs — append open Brave tabs to the standing log (and optional snapshot).
 set -euo pipefail
 
-# Standing Kit-style log is the home (system/ pkm/brave-tabs.md).
-# Desktop markdown is optional (--desktop) — not a third SSOT.
-# Override standing: BRAVE_TABS_STANDING=/path/to/file
-# Skip standing: --no-standing   or   BRAVE_TABS_STANDING=
+readonly PROG_NAME="${0:t}"
+readonly PROG_VERSION="0.2.0"
+
 STANDING_DEFAULT="$HOME/repos/system/pkm/brave-tabs.md"
 if [[ -v BRAVE_TABS_STANDING ]]; then
   STANDING="$BRAVE_TABS_STANDING"
 else
   STANDING="$STANDING_DEFAULT"
 fi
+
 NO_STANDING=0
 WANT_DESKTOP=0
 DESKTOP_OUT=""
-POSITIONAL=()
-for a in "$@"; do
-  if [[ "$a" == "--no-standing" ]]; then
-    NO_STANDING=1
-  elif [[ "$a" == "--desktop" ]]; then
-    WANT_DESKTOP=1
-  elif [[ "$a" == --desktop=* ]]; then
-    WANT_DESKTOP=1
-    DESKTOP_OUT="${a#--desktop=}"
-  else
-    POSITIONAL+=("$a")
-  fi
-done
-# Positional path after --desktop means custom Desktop/snapshot path
-if (( WANT_DESKTOP )) && (( ${#POSITIONAL[@]} > 0 )); then
-  DESKTOP_OUT="${POSITIONAL[1]}"
-elif (( WANT_DESKTOP )) && [[ -z "$DESKTOP_OUT" ]]; then
-  DESKTOP_OUT="$HOME/Desktop/brave-tabs-$(date +%Y-%m-%d-%H%M).md"
-elif (( ${#POSITIONAL[@]} > 0 )); then
-  echo "Unknown argument: ${POSITIONAL[1]}" >&2
-  echo "Usage: export-brave-tabs.sh [--no-standing] [--desktop [path]]" >&2
+QUIET=0
+
+usage() {
+  cat <<USAGE
+Usage: $PROG_NAME [OPTION]...
+
+Append open Brave Browser tabs to the standing Kit-style log
+($STANDING_DEFAULT), then refresh ~/Library/Logs/brave-tabs.log for Console.
+
+Options:
+  -h, --help            show this help and exit
+  -V, --version         show version and exit
+  -q, --quiet           print less (errors still go to stderr)
+      --desktop [PATH]  also write a one-off markdown snapshot
+                        (default PATH: ~/Desktop/brave-tabs-YYYY-MM-DD-HHMM.md)
+      --no-standing     skip the standing log (requires --desktop)
+
+Environment:
+  BRAVE_TABS_STANDING   override standing log path; empty skips standing
+  SYSTEM_HOME           override system/ root for the Console projector
+
+Exit status:
+  0  success (also for --help / --version)
+  2  usage error
+  other  failure from Brave/osascript or write errors
+USAGE
+}
+
+version() {
+  print -r -- "$PROG_NAME $PROG_VERSION"
+}
+
+log() {
+  (( QUIET )) && return 0
+  print -r -- "$@"
+}
+
+die_usage() {
+  print -r -- "$PROG_NAME: $*" >&2
+  print -r -- "Try '$PROG_NAME --help' for more information." >&2
   exit 2
+}
+
+# Parse options. Supports GNU-style long options and an optional path after --desktop.
+while (( $# > 0 )); do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -V|--version)
+      version
+      exit 0
+      ;;
+    -q|--quiet)
+      QUIET=1
+      shift
+      ;;
+    --desktop)
+      WANT_DESKTOP=1
+      shift
+      if (( $# > 0 )) && [[ "$1" != -* ]]; then
+        DESKTOP_OUT="$1"
+        shift
+      fi
+      ;;
+    --desktop=*)
+      WANT_DESKTOP=1
+      DESKTOP_OUT="${1#--desktop=}"
+      [[ -n "$DESKTOP_OUT" ]] || die_usage "--desktop= requires a path"
+      shift
+      ;;
+    --no-standing)
+      NO_STANDING=1
+      shift
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*)
+      die_usage "unrecognized option '$1'"
+      ;;
+    *)
+      die_usage "unexpected argument '$1' (use --desktop PATH for a snapshot file)"
+      ;;
+  esac
+done
+(( $# == 0 )) || die_usage "unexpected argument '$1'"
+
+if (( WANT_DESKTOP )) && [[ -z "$DESKTOP_OUT" ]]; then
+  DESKTOP_OUT="$HOME/Desktop/brave-tabs-$(date +%Y-%m-%d-%H%M).md"
 fi
 
 RAW="$(/usr/bin/osascript <<'APPLESCRIPT'
@@ -59,16 +130,15 @@ APPLESCRIPT
 
 if (( WANT_DESKTOP )); then
   print -r -- "$RAW" > "$DESKTOP_OUT"
-  echo "Wrote optional snapshot $DESKTOP_OUT"
-  open -R "$DESKTOP_OUT"
+  log "Wrote optional snapshot $DESKTOP_OUT"
+  (( QUIET )) || open -R "$DESKTOP_OUT"
 fi
 
 if (( NO_STANDING )) || [[ -z "$STANDING" ]]; then
   if (( ! WANT_DESKTOP )); then
-    echo "Nothing to do: standing skipped and --desktop not set." >&2
-    exit 2
+    die_usage "nothing to do: standing skipped and --desktop not set"
   fi
-  echo "Standing append skipped."
+  log "Standing append skipped."
   exit 0
 fi
 
@@ -127,13 +197,17 @@ with standing.open("a", encoding="utf-8") as f:
         f.write("\n")
         f.write("\n".join(lines) + "\n")
 print(f"Appended {len(lines)} lines to {standing}")
-' "$STANDING" "$STAMP"
+' "$STANDING" "$STAMP" | { (( QUIET )) && cat >/dev/null || cat; }
 
 # Console Log Reports need a real .log under ~/Library/Logs (symlinks invisible).
 # Lock A: regenerate projection from standing SSOT; do not move the home.
 PROJECTOR="${SYSTEM_HOME:-$HOME/repos/system}/scripts/project-console-logs.sh"
 if [[ -x "$PROJECTOR" ]]; then
-  "$PROJECTOR" || echo "Console projection failed (non-fatal): $PROJECTOR" >&2
+  if (( QUIET )); then
+    "$PROJECTOR" >/dev/null || print -r -- "Console projection failed (non-fatal): $PROJECTOR" >&2
+  else
+    "$PROJECTOR" || print -r -- "Console projection failed (non-fatal): $PROJECTOR" >&2
+  fi
 else
-  echo "Console projector missing: $PROJECTOR" >&2
+  print -r -- "Console projector missing: $PROJECTOR" >&2
 fi

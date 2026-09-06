@@ -13,8 +13,10 @@ One-job macOS helper: export open Brave Browser tabs into the owner standing log
 ## Constraints
 
 - Stay a single shell script (+ tiny inline python for standing append). No Node, no Swift app, no Homebrew formula unless the owner asks.
+- Be a good Unix citizen: `-h`/`--help`, `-V`/`--version`, `-q`/`--quiet`, unrecognized options exit 2 with a short hint.
 - Default path writes **no** Desktop file. Optional `--desktop` keeps the old markdown window/`- [title](url)` shape for a one-off snapshot.
 - Standing format stays stable: `YYYY-MM-DDTHH:MM W{n} | title | url` (Europe/Warsaw).
+- Bump `PROG_VERSION` in the script when behavior changes in a user-visible way.
 - Do not invent browser support for Chrome/Safari unless asked; clone the script if needed.
 - Never commit Desktop dump files or paste personal tab lists into this public repo.
 - Do not `git commit`/`push` `system/` from this script.
