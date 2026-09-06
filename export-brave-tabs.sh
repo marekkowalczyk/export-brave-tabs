@@ -111,3 +111,12 @@ with standing.open("a", encoding="utf-8") as f:
 print(f"Appended {len(lines)} lines to {standing}")
 ' "$STANDING" "$STAMP"
 
+
+# Console Log Reports need a real .log under ~/Library/Logs (symlinks invisible).
+# Lock A: regenerate projection from standing SSOT; do not move the home.
+PROJECTOR="${SYSTEM_HOME:-$HOME/repos/system}/scripts/project-console-logs.sh"
+if [[ -x "$PROJECTOR" ]]; then
+  "$PROJECTOR" || echo "Console projection failed (non-fatal): $PROJECTOR" >&2
+else
+  echo "Console projector missing: $PROJECTOR" >&2
+fi

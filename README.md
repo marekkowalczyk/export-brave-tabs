@@ -46,3 +46,7 @@ Commit/push of `system/` is not done by this script — Larry or the commit-push
 
 - Browser tabs only. Other app windows have no URL.
 - Titles come from Brave; empty or odd titles are possible on `chrome://` / `brave://` pages.
+
+## Console projection (Lock A, 2026-09-06)
+
+Standing SSOT stays `system/pkm/brave-tabs.md` (git). After each standing append, `export-brave-tabs.sh` runs `system/scripts/project-console-logs.sh`, which copies that file (and `owner-inbox/inbox.md`) to real files under `~/Library/Logs/*.log` for Console.app Log Reports. Symlinks are invisible in Console — do not use them. Logs may be purged; regenerate anytime with the projector. Do not move the home into Library/Logs.
