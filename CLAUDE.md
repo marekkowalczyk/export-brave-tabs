@@ -2,7 +2,7 @@
 
 ## Purpose
 
-One-job macOS helper: export open Brave Browser tabs to markdown `[title](url)` lists so the human can close tabs without losing them.
+One-job macOS helper: export open Brave Browser tabs to a Desktop markdown snapshot, and append Kit-style lines to the owner standing log on `system/pkm/brave-tabs.md`.
 
 ## Layout
 
@@ -12,10 +12,12 @@ One-job macOS helper: export open Brave Browser tabs to markdown `[title](url)` 
 
 ## Constraints
 
-- Stay a single shell script. No Node, no Swift app, no Homebrew formula unless the owner asks.
-- Keep output format stable: markdown headings per window, then `- [title](url)` lines.
+- Stay a single shell script (+ tiny inline python for standing append). No Node, no Swift app, no Homebrew formula unless the owner asks.
+- Desktop output format stays stable: markdown headings per window, then `- [title](url)` lines.
+- Standing format stays stable: `YYYY-MM-DDTHH:MM W{n} | title | url` (Europe/Warsaw).
 - Do not invent browser support for Chrome/Safari unless asked; clone the script if needed.
-- Never commit Desktop dump files or personal tab lists.
+- Never commit Desktop dump files or paste personal tab lists into this public repo.
+- Do not `git commit`/`push` `system/` from this script.
 
 ## Permissions
 
