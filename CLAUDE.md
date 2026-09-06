@@ -27,7 +27,7 @@ macOS Automation must allow the runner to control Brave. If `osascript` hangs, t
 
 ## Symlink
 
-Canonical install for the owner: `~/bin/export-brave-tabs.sh` → this repo’s script. Prefer editing the repo file, not a duplicate in `~/bin`.
+Canonical install for the owner: `~/.local/bin/export-brave-tabs` → this repo’s `export-brave-tabs.sh`. Prefer editing the repo file, not a duplicate under `bin`.
 
 ## Console projection (Lock A, 2026-09-06)
 

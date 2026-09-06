@@ -13,23 +13,23 @@ Dump every open [Brave Browser](https://brave.com) tab (all windows) into the st
 
 ```bash
 git clone https://github.com/marekkowalczyk/export-brave-tabs.git ~/repos/export-brave-tabs
-ln -sf ~/repos/export-brave-tabs/export-brave-tabs.sh ~/bin/export-brave-tabs.sh
+ln -sfn ~/repos/export-brave-tabs/export-brave-tabs.sh ~/.local/bin/export-brave-tabs
 ```
 
-Ensure `~/bin` is on your `PATH`.
+Command name is `export-brave-tabs` (no `.sh`). `~/.local/bin` is on PATH via dotfiles `src/path.sh`.
 
 ## Usage
 
 ```bash
-export-brave-tabs.sh
-export-brave-tabs.sh --help
-export-brave-tabs.sh --version
+export-brave-tabs
+export-brave-tabs --help
+export-brave-tabs --version
 # optional one-off snapshot (not the home):
-export-brave-tabs.sh --desktop
-export-brave-tabs.sh --desktop ~/Desktop/my-tabs.md
+export-brave-tabs --desktop
+export-brave-tabs --desktop ~/Desktop/my-tabs.md
 # snapshot only (no standing append):
-export-brave-tabs.sh --desktop --no-standing
-export-brave-tabs.sh -q   # quieter stdout
+export-brave-tabs --desktop --no-standing
+export-brave-tabs -q   # quieter stdout
 ```
 
 Default: append standing log only. No Desktop file. Finder reveal only when `--desktop` is set.
@@ -54,4 +54,4 @@ Commit/push of `system/` is not done by this script — Larry or the commit-push
 
 ## Console projection (Lock A, 2026-09-06)
 
-Standing SSOT stays `system/pkm/brave-tabs.md` (git). After each standing append, `export-brave-tabs.sh` runs `system/scripts/project-console-logs.sh`, which copies that file (and `owner-inbox/inbox.md`) to real files under `~/Library/Logs/*.log` for Console.app Log Reports. Symlinks are invisible in Console — do not use them. Logs may be purged; regenerate anytime with the projector. Do not move the home into Library/Logs.
+Standing SSOT stays `system/pkm/brave-tabs.md` (git). After each standing append, `export-brave-tabs` runs `system/scripts/project-console-logs.sh`, which copies that file (and `owner-inbox/inbox.md`) to real files under `~/Library/Logs/*.log` for Console.app Log Reports. Symlinks are invisible in Console — do not use them. Logs may be purged; regenerate anytime with the projector. Do not move the home into Library/Logs.
